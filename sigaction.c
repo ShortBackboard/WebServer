@@ -62,6 +62,7 @@ int main() {
    
     // 注册信号捕捉
     // 两种信号
+    // 捕捉到这两种信号就调用回调函数
     sigaction(SIGALRM, &act, NULL);
     sigaction(SIGINT, &act, NULL);
 
