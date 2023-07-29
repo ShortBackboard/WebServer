@@ -48,6 +48,7 @@ int main() {
     // 让主线程退出,当主线程退出时，不会影响其他正常运行的线程。
     pthread_exit(NULL);
 
+    // 以下的代码不执行
     printf("main thread exit\n");
 
     return 0;   // exit(0);
