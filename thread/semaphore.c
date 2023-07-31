@@ -98,7 +98,7 @@ void * customer(void * arg) {
 int main() {
     // 初始化
     pthread_mutex_init(&mutex, NULL);
-    sem_init(&psem, 0, 8);//假设有8个
+    sem_init(&psem, 0, 8);//假设有8个，生产者的最大值为8
     sem_init(&csem, 0, 0);
 
     // 创建5个生产者线程，和5个消费者线程
