@@ -32,6 +32,7 @@
 
     //IP：32位
     // 转换IP
+    // 点分十进制大端小端之间的转换
     uint32_t htonl(uint32_t hostlong);		
     uint32_t ntohl(uint32_t netlong);		
 
