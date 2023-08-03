@@ -38,7 +38,7 @@ int main() {
     while(1) {
 
         char *data = "hello,I am client";
-        // 先给客户端发送数据
+        // 先给服务端发送数据
         write(fd, data , strlen(data));
 
         sleep(1);
