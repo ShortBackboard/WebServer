@@ -2,7 +2,8 @@
 
     date:2023-8-3
 
-    TCP 通信的服务器端，多进程实现并发
+    TCP 通信的服务器端
+    多进程实现并发服务器
     父进程accept，子进程用于通信
 */
 
@@ -107,7 +108,7 @@ int main() {
                     printf("recv client : %s\n", recvBuf);
                 } else if(len == 0) {
                     printf("client closed....\n");
-                    break;
+                    break;//客户端退出后跳出循环
                 }
                 write(cfd, recvBuf, strlen(recvBuf) + 1);//+1为了把结束符\0带上
             }
