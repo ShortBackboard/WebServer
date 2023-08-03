@@ -45,6 +45,7 @@ void *working(void * arg) {
             for(int i = 0; i < (sizeof(sockinfos) / sizeof(sockinfos[0])); i++) {
                 if(sockinfos[i].tid == pthread_self()){
                     sockinfos[i].fd = -1;
+                    break;//只会跳出for循环
                 }
             }
 
