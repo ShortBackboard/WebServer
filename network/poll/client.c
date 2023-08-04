@@ -1,4 +1,4 @@
-//  select 客户端
+//  poll客户端
 //  date:2023-8-4
 
 #include <stdio.h>
@@ -17,7 +17,7 @@ int main() {
     }
 
     struct sockaddr_in seraddr;
-    inet_pton(AF_INET, "192.168.56.101", &seraddr.sin_addr.s_addr);
+    inet_pton(AF_INET, "127.0.0.1", &seraddr.sin_addr.s_addr);
     seraddr.sin_family = AF_INET;
     seraddr.sin_port = htons(9999);
 

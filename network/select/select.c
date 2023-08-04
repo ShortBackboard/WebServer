@@ -67,6 +67,18 @@ void FD_SET(int fd, fd_set *set);
 
 // fd_set一共有1024 bit, 全部初始化为0
 void FD_ZERO(fd_set *set);
+
+缺点：
+1.每次调用select，都需要把fd集合从用
+户态拷贝到内核态，这个开销在fd很多时
+会很大
+2.同时每次调用select都需要在内核遍历
+传递进来的所有fd，这个开销在fd很多时
+也很大
+3.select支持的文件描述符数量太小了，
+默认是1024
+4.fds集合不能重用，每次都需要重置
+
 */
 
 #include <stdio.h>
