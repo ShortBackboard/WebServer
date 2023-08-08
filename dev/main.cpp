@@ -1,6 +1,25 @@
 /*
     date:2023-8-7
 
+    流程：
+        1.主线程监听到有新的客户端连接，将accept()的返回的客户端信息添加到HttpConn类型的users[MAX_FD]数组中
+        HttpConn *users = new HttpConn[MAX_FD];
+        users[connfd].init(connfd, client_address);
+
+        2.将用于与该客户端通信的fd添加到epoll对象中并设置要监听的事件
+        
+        3.主线程循环while运行等待epoll监听事件
+        
+        4.如果是EPOLLIN事件，说明已经连接的某个客服端发送了请求报文，将请求报文全部一次性read()完毕
+        并调用线程池的eppend()函数push_back()到请求队列，
+        此时线程池中的某个线程取得请求队列的数据，进行run()函数内的process()函数对请求报文进行解析
+        ThreadPool<HttpConn> *pool = new ThreadPool<HttpConn>;
+        
+        5.如果是EPOLLOUT事件，就一次性写完数据调用write()生成响应报文发送给客户端
+
+    
+    注意：
+        1.epoll只负责监听读写事件，解析和生成报文有用户态实现
 */
 
 
@@ -19,7 +38,7 @@ void addSig(int sig, void(handler)(int)) {
     sa.sa_handler = handler;
 
     //????
-    sigfillset(&sa.sa_mask);
+    //sigfillset(&sa.sa_mask);
 
     // 注册新的信号捕捉
     // 捕捉到该新信号就调用回调函数handler
@@ -59,7 +78,7 @@ int main(int argc, char *argv[]) {
     // 创建线程池并初始化
     // 任务类：HttpConn连接类
     ThreadPool<HttpConn> *pool = NULL;
-    //异常捕捉
+    // 异常捕捉
     try {
         pool = new ThreadPool<HttpConn>;
     } catch(...) {
@@ -91,6 +110,7 @@ int main(int argc, char *argv[]) {
     // inet_pton(AF_INET, "192.168.56.101", &address.sin_addr.s_addr); //本机的IP地址，实际开发时就是域名中的ip地址
     address.sin_port = htons(port);// 主机转网络字节序
 
+    // 和本机的ip+port绑定
     int ret = bind(listenfd, (struct sockaddr *)&address, sizeof(address));
 
     if(ret == -1) {
@@ -114,7 +134,7 @@ int main(int argc, char *argv[]) {
     // 将监听的文件描述符添加到epoll对象中
     addfd(epollfd, listenfd, false);
 
-
+    // 所有的socket上的事件都被注册到同一个epoll对象中
     HttpConn::m_epollfd = epollfd;
 
     // 循环检测事件发生
@@ -135,6 +155,8 @@ int main(int argc, char *argv[]) {
             if(sockfd == listenfd) {
                 // 监听的文件描述符有数据达到，有客户端连接
                 // 将客户端fd添加到epev
+                // client_address传出参数，保存着客户端的信息(ip + port)
+                // connfd:用于与该客户端通信的文件描述符，accept返回值
                 struct sockaddr_in client_address;
                 socklen_t client_addrlen = sizeof(client_address);
                 int connfd = accept(listenfd, (struct sockaddr *)&client_address, &client_addrlen);
@@ -146,7 +168,7 @@ int main(int argc, char *argv[]) {
                     continue;
                 }
 
-                // 将新的客户数据初始化，放到数组中
+                // 将新的客户数据初始化，放到数组中，将connfd添加到epoll对象中
                 users[connfd].init(connfd, client_address);
 
             }else if(events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
@@ -154,16 +176,17 @@ int main(int argc, char *argv[]) {
                 users[sockfd].close_conn();
                 
             }else if(events[i].events & EPOLLIN) {
-                // 读事件
+                // 读事件，客户端有请求报文发送
                 if(users[sockfd].read()) {
                     // 一次性把数据都读出来
+                    // users数组首地址加sockfd偏移量
                     pool->append(users + sockfd);
                 }else {
                     users[sockfd].close_conn();
                 }
 
             }else if(events[i].events & EPOLLOUT) {
-                //写事件
+                //写事件，给客户端生成响应报文
                if(!users[sockfd].write()) {//一次性写完
                     users[sockfd].close_conn();
                } 
