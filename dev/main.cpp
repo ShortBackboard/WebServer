@@ -14,12 +14,15 @@
         并调用线程池的eppend()函数push_back()到请求队列，
         此时线程池中的某个线程取得请求队列的数据，进行run()函数内的process()函数对请求报文进行解析
         ThreadPool<HttpConn> *pool = new ThreadPool<HttpConn>;
+
+        process()函数对请求报文解析完毕后，会生成响应，并将该通信的socketfd事件改为EPOLLOUT
         
-        5.如果是EPOLLOUT事件，就一次性写完数据调用write()生成响应报文发送给客户端
+        5.epoll监听到EPOLLOUT事件后，就调用write()将生成的响应报文发送给客户端
+         浏览器再自动解析响应报文字段里面的.html文件等并显示
 
     
     注意：
-        1.epoll只负责监听读写事件，解析和生成报文有用户态实现
+        1.epoll只负责监听读写事件，解析和生成报文由用户态实现
 */
 
 

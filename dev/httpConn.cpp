@@ -424,6 +424,9 @@ void HttpConn::process() {
     if ( !write_ret ) {
         close_conn();
     }
+
+    // 生成响应后，将该通信的socketfd事件改为EPOLLOUT
+    // 主线程中epoll监听到此事件就把响应报文写给客户端
     modfd( m_epollfd, m_sockfd, EPOLLOUT);
     
 
